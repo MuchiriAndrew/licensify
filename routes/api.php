@@ -20,5 +20,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 });
 
 
-Route::post('/validate-license', [LicenseController::class, 'validate_license']);
+Route::post('/validate-license', [LicenseController::class, 'validate_license'])
+    ->middleware('throttle:validate');
 

@@ -26,8 +26,10 @@ class LicenseResource extends Resource
     {
         return $form->schema([
             Forms\Components\TextInput::make('key')
-                ->required()
-                ->unique(),
+                ->label('License Key')
+                ->placeholder('Leave empty to auto-generate')
+                ->required(false)
+                ->unique(ignoreRecord: true),
             Forms\Components\TextInput::make('domain')
                 ->nullable(),
             Forms\Components\Toggle::make('is_active')
@@ -55,6 +57,13 @@ class LicenseResource extends Resource
             'index' => Pages\ListRecords::route('/'),
             'create' => Pages\CreateRecord::route('/create'),
             'edit' => Pages\EditRecord::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\ActivationsRelationManager::class,
         ];
     }
 }

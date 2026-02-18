@@ -18,5 +18,12 @@ class License extends Model
         'expires_at',
     ];
 
+    protected $casts = [
+        'expires_at' => 'date',
+    ];
 
+    public function activations()
+    {
+        return $this->hasMany(LicenseActivation::class);
+    }
 }
