@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\LicenseController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,3 +19,7 @@ Route::get('/', function () {
     //redirect to admin
     return redirect('/admin');
 });
+
+Route::post('/validate-license', [LicenseController::class, 'validate_license']);
+Route::post('/create-license', [LicenseController::class, 'create_license']);
+
