@@ -7,12 +7,14 @@ use App\Models\License;
 use App\Services\LicenseValidationService;
 use Filament\Resources\Pages\CreateRecord as BaseCreateRecord;
 
-class CreateRecord extends BaseCreateRecord
+class CreateLicense extends BaseCreateRecord
 {
     protected static string $resource = LicenseResource::class;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data['user_id'] = auth()->id();
+
         if (empty(trim($data['key'] ?? ''))) {
             do {
                 $data['key'] = LicenseValidationService::generateLicenseKey();

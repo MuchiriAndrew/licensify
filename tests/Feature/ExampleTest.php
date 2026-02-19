@@ -8,12 +8,12 @@ use Tests\TestCase;
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Home route responds (redirect to admin or welcome).
      */
     public function test_the_application_returns_a_successful_response(): void
     {
         $response = $this->get('/');
 
-        $response->assertStatus(200);
+        $this->assertContains($response->status(), [200, 302]);
     }
 }

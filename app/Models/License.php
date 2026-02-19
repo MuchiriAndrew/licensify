@@ -12,11 +12,17 @@ class License extends Model
     protected $table = 'licenses';
 
     protected $fillable = [
+        'user_id',
         'key',
         'domain',
         'is_active',
         'expires_at',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 
     protected $casts = [
         'expires_at' => 'date',

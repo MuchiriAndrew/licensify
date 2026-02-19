@@ -29,15 +29,20 @@ class LicenseResource extends Resource
                 ->label('License Key')
                 ->placeholder('Leave empty to auto-generate')
                 ->required(false)
-                ->unique(ignoreRecord: true),
+                ->unique(ignoreRecord: true)
+                ->disabledOn('edit')
+                ->helperText('The unique key your customers use to activate the product. Leave blank and one will be generated when you save. Cannot be changed after creation.'),
             Forms\Components\TextInput::make('domain')
-                ->nullable(),
+                ->nullable()
+                ->helperText('Optional: Restrict this license to a specific domain (e.g. example.com). Leave empty to allow use on any domain.'),
             Forms\Components\Toggle::make('is_active')
                 ->label('Active')
-                ->default(true),
+                ->default(true)
+                ->helperText('Inactive licenses will fail validation. Turn off to revoke access without deleting the license.'),
             Forms\Components\DatePicker::make('expires_at')
                 ->label('Expires At')
-                ->nullable(),
+                ->nullable()
+                ->helperText('Optional: When this license should stop working. Leave empty for no expiry (perpetual license).'),
         ]);
     }
 
@@ -54,9 +59,9 @@ class LicenseResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListRecords::route('/'),
-            'create' => Pages\CreateRecord::route('/create'),
-            'edit' => Pages\EditRecord::route('/{record}/edit'),
+            'index' => Pages\ListLicenses::route('/'),
+            'create' => Pages\CreateLicense::route('/create'),
+            'edit' => Pages\EditLicense::route('/{record}/edit'),
         ];
     }
 
@@ -65,5 +70,10 @@ class LicenseResource extends Resource
         return [
             RelationManagers\ActivationsRelationManager::class,
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->where('user_id', auth()->id());
     }
 }

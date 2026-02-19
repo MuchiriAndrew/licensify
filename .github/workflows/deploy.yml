@@ -1,0 +1,97 @@
+name: Build, Push, and Deploy Licensify Project to Docker Hub and CapRover
+
+on:
+  push:
+    branches:
+      - main  # Trigger this action when you push to the main branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest  # Runs on an Ubuntu machine
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Step 4: Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/licensify:${{ github.sha }} .
+
+      # Step 5: Push Docker image to Docker Hub
+      - name: Push Docker image to Docker Hub
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/licensify:${{ github.sha }}
+
+      # Step 6: Install CapRover CLI
+      - name: Install CapRover CLI
+        run: npm install -g caprover
+
+      # Step 8: Auto Deploy the Docker image to CapRover
+      - name: Deploy to CapRover Using GitHub Actions
+        uses: dankore/github-to-caprover@v1.0.9
+        with:
+          server: '${{ secrets.CAPROVER_SERVER }}'
+          password: '${{ secrets.CAPROVER_PASSWORD }}'
+          appName: '${{ secrets.APP_NAME }}'
+          image: '${{ secrets.DOCKER_USERNAME }}/licensify:${{ github.sha }}'
+
+      # Step 9: Wait for container to be ready
+      - name: Wait for container to start
+        run: |
+          echo "Waiting for container to be ready..."
+          sleep 10
+
+
+
+      # Step 10: SSH into server, fix storage permissions, and run migrations
+      # - name: Run database migrations
+      #   uses: appleboy/ssh-action@v1.0.0
+      #   with:
+      #     host: ${{ secrets.SSH_HOST }}
+      #     username: ${{ secrets.SSH_USERNAME }}
+      #     password: ${{ secrets.SSH_PASSWORD }}
+      #     script: |
+      #       # Find the container name for the app
+      #       CONTAINER_NAME=$(docker ps --filter "name=${{ secrets.APP_NAME }}" --format "{{.Names}}" | head -n 1)
+
+      #       if [ -z "$CONTAINER_NAME" ]; then
+      #         echo "Container not found, trying alternative method..."
+      #         CONTAINER_NAME=$(docker ps --format "{{.Names}}" | grep -i "${{ secrets.APP_NAME }}" | head -n 1)
+      #       fi
+
+      #       if [ -z "$CONTAINER_NAME" ]; then
+      #         echo "Error: Could not find container for app ${{ secrets.APP_NAME }}"
+      #         docker ps
+      #         exit 1
+      #       fi
+
+      #       echo "Found container: $CONTAINER_NAME"
+
+      #       # Wait a bit more for services to be ready
+      #       sleep 5
+
+      #       # Fix storage/cache permissions (volume mount may be owned by root; www-data needs write access)
+      #       echo "Fixing storage and bootstrap/cache permissions..."
+      #       docker exec $CONTAINER_NAME chown -R www-data:www-data /production/portfoliov2/storage /production/portfoliov2/bootstrap/cache
+      #       docker exec $CONTAINER_NAME chmod -R 775 /production/portfoliov2/storage /production/portfoliov2/bootstrap/cache
+
+      #       # Run migrations
+      #       echo "Running database migrations..."
+      #       docker exec $CONTAINER_NAME php /production/portfoliov2/artisan migrate --force || {
+      #         echo "Migration completed with warnings (this is usually okay)"
+      #       }
+
+      #       echo "Migrations completed successfully!"
